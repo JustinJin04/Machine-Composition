@@ -1,7 +1,7 @@
 import random
 
 # 定义音符体系
-melody_system = ['F3', '4F3', 'B3', 'C4', '4C4', 'B4', 'C5', '4C5', '4F5', 'G5']
+melody_system = ['F3', '#F3', 'B3', 'C4', '#C4', 'B4', 'C5', '#C5', '#F5', 'G5']
 
 # 生成初始种群
 def generate_population(pop_size, melody_length):

@@ -9,7 +9,7 @@ def melody_to_midi(melody, output_file="output.mid", tempo=120):
     midi.addTempo(0, 0, tempo)
 
     # Define a dictionary to map note names to MIDI pitch values
-    note_mapping = {'C': 60,'4C': 61, 'D': 62,'4D': 63,'E': 64, 'F': 65,'4F':66, 'G': 67,'4G':68, 'A': 69,'4A':70, 'B': 71}
+    note_mapping = {'C': 60,'#C': 61, 'D': 62,'#D': 63,'E': 64, 'F': 65,'#F':66, 'G': 67,'#G':68, 'A': 69,'#A':70, 'B': 71}
 
     # Add notes to the MIDI file
     for i, note in enumerate(melody):
