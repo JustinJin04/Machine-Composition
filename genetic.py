@@ -1,4 +1,5 @@
 import random
+from fitness import fitness
 
 # 定义音符体系
 melody_system = ['0','F3','#F3','G3','#G3','A3','#A3','B3','C4', '#C4','D4','#D4','E4',
@@ -14,9 +15,9 @@ def generate_population(pop_size, melody_length):
     return population
 
 # 自适应度函数
-def fitness(melody):
-    fitness_score = random.randint(1, 100)
-    return fitness_score
+#def fitness(melody):
+#    fitness_score = random.randint(1, 100)
+#    return fitness_score
 
 # 交叉操作
 def crossover(parent1, parent2):
@@ -38,6 +39,11 @@ def genetic_algorithm(pop_size, melody_length, generations):
         # 计算适应度
         fitness_scores = [fitness(melody) for melody in population]
 
+        # 输出当前代的最佳旋律
+        best_melody = population[fitness_scores.index(max(fitness_scores))]
+        #encody_melody = [Encoding[note] for note in best_melody]
+        print(f"Generation {generation + 1}, Best Melody: {best_melody}, Fitness: {max(fitness_scores)}")
+
         # 选择父代
         parents = random.choices(population, weights=fitness_scores, k=pop_size)
 
@@ -52,9 +58,5 @@ def genetic_algorithm(pop_size, melody_length, generations):
         # 更新种群
         population = offspring
 
-        # 输出当前代的最佳旋律
-        best_melody = population[fitness_scores.index(max(fitness_scores))]
-        print(f"Generation {generation + 1}, Best Melody: {best_melody}, Fitness: {max(fitness_scores)}")
-    
     return best_melody
 
