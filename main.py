@@ -2,32 +2,42 @@ from genetic import genetic_algorithm
 import pygame
 import time
 from midiutil import MIDIFile
+import random
+
+# Define a dictionary to map note names to MIDI pitch values
+note_mapping = {
+    'F3':53,'#F3':54,'G3':55,'#G3':56,'A3':57,'#A3':58,'B3':59,'C4':60, '#C4':61,'D4':62,'#D4':63,'E4':64,
+    'F4':65,'#F4':66,'G4':67,'#G4':68,'A4':69,'#A4':70,'B4':71,'C5':72, '#C5':73,'D5':74,'#D5':75,'E5':76,
+    'F5':77,'#F5':78,'G5':79
+}
 
 def melody_to_midi(melody, output_file="output.mid", tempo=120):
     # Create a MIDIFile object
     midi = MIDIFile(1)  # 1 track
     midi.addTempo(0, 0, tempo)
 
-    # Define a dictionary to map note names to MIDI pitch values
-    note_mapping = {'C': 60,'#C': 61, 'D': 62,'#D': 63,'E': 64, 'F': 65,'#F':66, 'G': 67,'#G':68, 'A': 69,'#A':70, 'B': 71}
+    i=0
+    length=len(melody)
+    while i<length:
+        note_name=melody[i]
+        if note_name=='0' or note_name=='-':
+            i+=1
+            continue
+        duration = 1
+        j=i+1
+        while j<length and melody[j]=='-':
+            j+=1
+            duration+=1
 
-    # Add notes to the MIDI file
-    for i, note in enumerate(melody):
-        # Extract note name and duration from the melody
-        note_name, duration = note[:-1], int(note[-1])
-
-        # Map note name to MIDI pitch
-        pitch = note_mapping[note_name]
-
-        # Add note to the MIDI file
+        pitch=note_mapping[note_name]
         midi.addNote(0, 0, pitch, i, duration, 100)
-
-    # Return the MIDI object
+        i+=duration
     return midi
+
 
 if __name__ == "__main__":
     # 生成音乐
-    melody = genetic_algorithm(pop_size=100, melody_length=20, generations=50)
+    melody = genetic_algorithm(pop_size=10, melody_length=8, generations=500)
 
     # 保存音乐
     midi = melody_to_midi(melody)
@@ -38,5 +48,5 @@ if __name__ == "__main__":
     pygame.mixer.init()
     pygame.mixer.music.load("melody.mid")
     pygame.mixer.music.play()
-    time.sleep(10)
+    time.sleep(20)
     pygame.mixer.music.stop()

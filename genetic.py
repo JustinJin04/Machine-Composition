@@ -1,7 +1,9 @@
 import random
 
 # 定义音符体系
-melody_system = ['F3', '#F3', 'B3', 'C4', '#C4', 'B4', 'C5', '#C5', '#F5', 'G5']
+melody_system = ['0','F3','#F3','G3','#G3','A3','#A3','B3','C4', '#C4','D4','#D4','E4',
+                 'F4','#F4','G4','#G4','A4','#A4','B4','C5', '#C5','D5','#D5','E5',
+                 'F5','#F5','G5','-']
 
 # 生成初始种群
 def generate_population(pop_size, melody_length):
@@ -9,23 +11,12 @@ def generate_population(pop_size, melody_length):
     for _ in range(pop_size):
         melody = [random.choice(melody_system) for _ in range(melody_length)]
         population.append(melody)
-    return population\
-    
-# 自适应度函数
+    return population
 
+# 自适应度函数
 def fitness(melody):
-    # 适应度的初始值
-    fitness_score = 0.0
-    
-    # 1. 音高连续性
-    pitch_changes = sum(1 for i in range(1, len(melody)) if melody[i] != melody[i - 1])
-    fitness_score += 1.0 / (1.0 + pitch_changes)
-    
+    fitness_score = random.randint(1, 100)
     return fitness_score
-'''
-def fitness(melody):
-    return random.uniform(0, 1)
-'''
 
 # 交叉操作
 def crossover(parent1, parent2):
