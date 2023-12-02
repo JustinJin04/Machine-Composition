@@ -20,25 +20,34 @@ Decoding = {
 IntervalScore=[0,-3,-2,0,0,0,-2,0,-1,0,-1,-3]
 
 def fitness_pitch(melody_code):
-    fitness_score = 0
-    i=0
-    if melody_code[i]==28 or melody_code[i]==0:
-        i+=1
-    j=i+1
-    length=len(melody_code)
-    while j<length:
-        if melody_code[j]==28 or melody_code[j]==0:
-            j+=1
+    score = 0
+    i = 0
+    if melody_code[i] == 28 or melody_code[i] == 0: i += 1
+    j = i + 1
+    length = len(melody_code)
+    while j < length:
+        if melody_code[j] == 28 or melody_code[j] == 0:
+            j += 1
             continue
-        fitness_score+=IntervalScore[abs(melody_code[i]-melody_code[j])%12]
-        i=j
-        j+=1
-    return fitness_score
+        delta = abs(melody_code[i] - melody_code[j])
+        score += IntervalScore[delta % 12]
+        
+        if delta > 12: score -= (delta - 12) * 0.2 # added
 
+        i = j
+        j += 1
+    return score
+
+def fitness_special_cases(melody_code):
+    score = 0
+    if melody_code[0] in [0, 28]: score -= 1
+    # please add
+
+    return score
 
 def fitness(melody):
-    fitness_score = 10
-    melody_code=[Encoding[note] for note in melody]
-    fitness_score+=fitness_pitch(melody_code)
+    melody_code = [Encoding[note] for note in melody]
+    fitness_score = fitness_pitch(melody_code)
+    fitness_score += fitness_special_cases(melody_code)
     return fitness_score
 
