@@ -19,8 +19,9 @@ def generate_population(pop_size, melody_length):
 
 # 将分数归一化，变换为目标的标准差
 def normalize_weights(scores, std_before_exp=1.):
+    sorted_scores = sorted(scores)
     print(scores)
-    mean, std = np.mean(scores), np.std(scores)
+    mean, std = np.mean(sorted_scores[2:]), np.std(sorted_scores[2:])
     if std < 1e-3: return [1.] * len(scores)
     scores = (scores - mean) / std * std_before_exp
     weights = np.exp(scores)

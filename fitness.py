@@ -17,7 +17,12 @@ Decoding = {
     28:'-'
 }
 
-IntervalScore=[0,-3,-2,0,0,0,-2,0,-1,0,-1,-3]
+IntervalScore = [0, -5, -3,  0,  0,  0, -2,  0,  -1,  0, -3, -5]
+
+ToneScore =     [1,  0,  1,0.3,  1,  1,  0,  1, 0.3,  1,  0,  1]
+
+HeadScore =     [1,  0,  0,  0,  1,  0,  0,  1,   0,  0,  0,  0]
+TailScore =     [2,  0,  0,  0,  1,  0,  0,  1,   0,  0,  0,  0]
 
 def fitness_pitch(melody_code):
     score = 0
@@ -32,22 +37,50 @@ def fitness_pitch(melody_code):
         delta = abs(melody_code[i] - melody_code[j])
         score += IntervalScore[delta % 12]
         
-        if delta > 12: score -= (delta - 12) * 0.2 # added
-
+        if delta > 11: score -= 2
         i = j
         j += 1
     return score
 
-def fitness_special_cases(melody_code):
+def fitness_tone(melody_code, tone=8):
     score = 0
-    if melody_code[0] in [0, 28]: score -= 1
+    for i in melody_code:
+        if i == 28 or i == 0: score += 0.5
+        else: score += ToneScore[(i - tone) % 12]
+    return score
+
+def fitness_special_cases(melody_code, tone=8):
+    score = 0
+    if melody_code[0] in [0, 28]: 
+        score -= 10
+    else: 
+        score += HeadScore[(melody_code[0] - tone) % 12]
+
     # please add
+    if melody_code[-1] not in [0, 28]:
+        score += TailScore[(melody_code[-1] - tone) % 12]
 
     return score
 
-def fitness(melody):
+def fitness_sequence(melody_code):
+    N = len(melody_code)
+    score = 0
+    for i in range(0, N, 4):
+        if melody_code[i] < melody_code[i+1] and melody_code[i+1] < melody_code[i+2] \
+            and melody_code[i+2] < melody_code[i+3] and melody_code[i] > 0 and melody_code[i+3] < 28: score += 1
+        elif melody_code[i] > melody_code[i+1] and melody_code[i+1] > melody_code[i+2] \
+            and melody_code[i+2] > melody_code[i+3] and melody_code[i+3] > 0 and melody_code[i] < 28: score += 1
+        
+    for i in range(2, N):
+        if melody_code[i] == melody_code[i-2] and melody_code[i] == melody_code[i-1]: score -= 1
+    return score
+
+
+def fitness(melody, tone=9):
     melody_code = [Encoding[note] for note in melody]
-    fitness_score = fitness_pitch(melody_code)
-    fitness_score += fitness_special_cases(melody_code)
+    fitness_score = fitness_pitch(melody_code) * 4
+    fitness_score += fitness_special_cases(melody_code, tone) * 10
+    fitness_score += fitness_tone(melody_code, tone) * 10
+    fitness_score += fitness_sequence(melody_code) * 3
     return fitness_score
 
