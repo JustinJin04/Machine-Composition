@@ -17,29 +17,31 @@ Decoding = {
     28:'-'
 }
 
-IntervalScore = [0, -5, -3,  0,  0,  0, -2,  0,  -1,  0, -3, -5]
+IntervalScore = [0, -5, -3, 0, 0, 0, -2, 0, -1, 0, -3, -5]
 
-ToneScore =     [1,  0,  1,0.3,  1,  1,  0,  1, 0.3,  1,  0,  1]
+ToneScore = [0, -1, 0, -0.7, 0, 0, -1, 0, -0.7, 0, -1, 0]
 
-HeadScore =     [1,  0,  0,  0,  1,  0,  0,  1,   0,  0,  0,  0]
-TailScore =     [2,  0,  0,  0,  1,  0,  0,  1,   0,  0,  0,  0]
+HeadScore = [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]
+TailScore = [3, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0]
 
-def fitness_pitch(melody_code):
+chords = [(4,3), (3,5), (5,4), (3,4), (4,5), (5,3)]
+
+def fitness_pitch_chord(melody_code):
     score = 0
-    i = 0
-    if melody_code[i] == 28 or melody_code[i] == 0: i += 1
-    j = i + 1
-    length = len(melody_code)
-    while j < length:
-        if melody_code[j] == 28 or melody_code[j] == 0:
-            j += 1
-            continue
-        delta = abs(melody_code[i] - melody_code[j])
-        score += IntervalScore[delta % 12]
-        
-        if delta > 11: score -= 2
-        i = j
-        j += 1
+    N = len(melody_code)
+    delta = [melody_code[i] - melody_code[i-1] for i in range(1,N)]
+    for i in range(N):
+        if melody_code[i] == 0 or melody_code[i] == 28: 
+            if i < N-1: delta[i] = -100
+            if i > 0: delta[i-1] = -100
+
+    score += IntervalScore[abs(delta[0] % 12)]
+    for i in range(1,N-1):
+        score += IntervalScore[abs(delta[i] % 12)]
+        if delta[i] > 0 and delta[i-1] > 0 and (delta[i-1], delta[i]) in chords: score += 2
+        if delta[i] < 0 and delta[i-1] < 0 and (-delta[i-1], -delta[i]) in chords: score += 2
+        if abs(delta[i-1]) > 7 and abs(delta[i] > 5): score -= 10
+
     return score
 
 def fitness_tone(melody_code, tone=8):
@@ -52,7 +54,7 @@ def fitness_tone(melody_code, tone=8):
 def fitness_special_cases(melody_code, tone=8):
     score = 0
     if melody_code[0] in [0, 28]: 
-        score -= 10
+        score -= 100
     else: 
         score += HeadScore[(melody_code[0] - tone) % 12]
 
@@ -75,12 +77,49 @@ def fitness_sequence(melody_code):
         if melody_code[i] == melody_code[i-2] and melody_code[i] == melody_code[i-1]: score -= 1
     return score
 
+def fitness_rhythm(melody_code):
+    N = len(melody_code)
+    score = 0
+    rhythm_type = [] # 0 休止 1 延长 -1 其他
 
-def fitness(melody, tone=9):
+    cnt_pause, cnt_extend = 0, 0
+    for i in range(N):
+        if melody_code[i] == 0: rhythm_type.append(0); cnt_pause += 1
+        elif melody_code[i] == 28: rhythm_type.append(1); cnt_extend += 1
+        else: rhythm_type.append(-1)
+
+    if cnt_pause > 3: score -= (cnt_pause - 3) * 2
+    elif cnt_pause <= 1: score -= 5
+    if cnt_extend > 4: score -= (cnt_extend - 4) * 2
+    elif cnt_extend <= 1: score -= 5
+
+    for i in range(N):
+        if rhythm_type[i] >= 0 and i % 4 == 0: 
+            score -= 2
+        if i % 4 == 3 and i > 3:
+            bonus = 0
+            for j in range(4):
+                if rhythm_type[i-j] != rhythm_type[i-j-4]: bonus = 0; break
+                if rhythm_type[i-j] >= 0: bonus = 1
+            score += bonus
+        if i > 0 and rhythm_type[i] == '-' and rhythm_type[i-1] == '0':
+            score -= 1e6
+        if rhythm_type[i] == '-' and (i == N-1 or rhythm_type[i+1] != '-'):
+            j = i
+            while j >= 0 and rhythm_type[j] == '-': j -= 1
+            if i-j > 3: score -= 2
+            elif i-j == 2 and j % 2 != 0: score -= 2
+
+    return score
+
+
+def fitness(melody, tone=8):
     melody_code = [Encoding[note] for note in melody]
-    fitness_score = fitness_pitch(melody_code) * 4
-    fitness_score += fitness_special_cases(melody_code, tone) * 10
+    fitness_score = fitness_pitch_chord(melody_code) * 3
+    fitness_score += fitness_special_cases(melody_code, tone) 
     fitness_score += fitness_tone(melody_code, tone) * 10
-    fitness_score += fitness_sequence(melody_code) * 3
+    fitness_score += fitness_sequence(melody_code) 
+    fitness_score += fitness_rhythm(melody_code) 
+
     return fitness_score
 

@@ -37,7 +37,7 @@ def melody_to_midi(melody, output_file="output.mid", tempo=120):
 
 if __name__ == "__main__":
     # 生成音乐
-    melody = genetic_algorithm(pop_size=10, melody_length=32, generations=100)
+    melody = genetic_algorithm(pop_size=10, melody_length=32, generations=1000)
 
     # 保存音乐
     midi = melody_to_midi(melody)
