@@ -54,8 +54,8 @@ def fitness_tone(melody_code, tone=8):
 def fitness_special_cases(melody_code, tone=8):
     score = 0
     if melody_code[0] in [0, 28]: 
-        score -= 100
-    else: 
+        score = -math.inf
+    else:
         score += HeadScore[(melody_code[0] - tone) % 12]
 
     # please add
@@ -88,25 +88,26 @@ def fitness_rhythm(melody_code):
         elif melody_code[i] == 28: rhythm_type.append(1); cnt_extend += 1
         else: rhythm_type.append(-1)
 
-    if cnt_pause > 3: score -= (cnt_pause - 3) * 2
+    if cnt_pause > 5: score -= (cnt_pause - 5)
     elif cnt_pause <= 1: score -= 5
-    if cnt_extend > 4: score -= (cnt_extend - 4) * 2
+    if cnt_extend > 5: score -= (cnt_extend - 5) 
     elif cnt_extend <= 1: score -= 5
 
     for i in range(N):
         if rhythm_type[i] >= 0 and i % 4 == 0: 
             score -= 2
-        if i % 4 == 3 and i > 3:
+        if i % 8 == 7 and i > 7:
             bonus = 0
-            for j in range(4):
-                if rhythm_type[i-j] != rhythm_type[i-j-4]: bonus = 0; break
-                if rhythm_type[i-j] >= 0: bonus = 1
+            for j in range(8):
+                if rhythm_type[i-j] != rhythm_type[i-j-8]: bonus = 0; break
+                if rhythm_type[i-j] >= 0: bonus = 3
             score += bonus
-        if i > 0 and rhythm_type[i] == '-' and rhythm_type[i-1] == '0':
-            score -= 1e6
-        if rhythm_type[i] == '-' and (i == N-1 or rhythm_type[i+1] != '-'):
+        if i > 0 and rhythm_type[i] == 1 and rhythm_type[i-1] == 0:
+            score = -math.inf
+
+        if rhythm_type[i] == 1 and (i == N-1 or rhythm_type[i+1] != 1):
             j = i
-            while j >= 0 and rhythm_type[j] == '-': j -= 1
+            while j >= 0 and rhythm_type[j] == 1: j -= 1
             if i-j > 3: score -= 2
             elif i-j == 2 and j % 2 != 0: score -= 2
 
@@ -116,10 +117,10 @@ def fitness_rhythm(melody_code):
 def fitness(melody, tone=8):
     melody_code = [Encoding[note] for note in melody]
     fitness_score = fitness_pitch_chord(melody_code) * 3
-    fitness_score += fitness_special_cases(melody_code, tone) 
+    fitness_score += fitness_special_cases(melody_code, tone) * 10
     fitness_score += fitness_tone(melody_code, tone) * 10
     fitness_score += fitness_sequence(melody_code) 
-    fitness_score += fitness_rhythm(melody_code) 
+    fitness_score += fitness_rhythm(melody_code) * 10
 
     return fitness_score
 
